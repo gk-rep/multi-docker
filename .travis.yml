@@ -1,0 +1,22 @@
+sudo: required
+services: 
+    - docker
+
+befire_install:
+    - docker build -t gayanthakeshara/react-test -f ./client/Dockerfile.dev ./client
+
+script:
+    - docker run -e CI=true gayanthakeshara/react-test npm test
+
+after_success:
+    - docker build -t gayanthakeshara/multi-client ./client
+    - docker build -t gayanthakeshara/multi-nginx ./nginx
+    - docker build -t gayanthakeshara/multi-server ./server
+    - docker build -t gayanthakeshara/multi-worker ./worker
+
+    - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+
+    - docker push gayanthakeshara/multi-client
+    - docker push gayanthakeshara/multi-nginx
+    - docker push gayanthakeshara/multi-server
+    - docker push gayanthakeshara/multi-worker
